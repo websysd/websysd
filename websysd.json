@@ -1,0 +1,18 @@
+{
+	"Tasks": [
+		{
+			"Name": "sleep",
+			"Command": "sleep 60",
+			"Environment": {},
+			"Service": true,
+			"Enabled": true
+		},
+		{
+			"Name": "echo",
+			"Command": "echo $PORT",
+			"Environment": {
+				"PORT": "9911"
+			}
+		}
+	]
+}

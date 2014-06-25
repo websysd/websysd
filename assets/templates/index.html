@@ -1,0 +1,51 @@
+<form method="post">
+<table class="table">
+	<tr>
+		<th>Task</th>
+		<th>Command</th>
+		<th>Environment</th>
+        <th>Service</th>
+		<th>Active task</th>
+        <th>Status</th>
+        <th>Actions</th>
+        <th></th>
+	</tr>
+{{ range .Tasks }}
+    <tr>
+    	<td>{{ .Name }}</td>
+    	<td>{{ .Command }}</td>
+    	<td>{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
+{{ end }}</pre>{{ end }}</td>
+        <td>
+            {{ if .Service }}
+                Yes ({{ if .Enabled }}enabled{{ else }}disabled{{ end }})
+            {{ else }}
+                No
+            {{ end }}
+        </td>
+    	<td>
+    		{{ if .ActiveTask }}
+    			{{ .ActiveTask }}
+    			<a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+    			<a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+            {{ else }}
+                <i>None</i>
+    		{{ end }}
+    	</td>
+        <td>
+            {{ .Status }}
+        </td>
+        <td>
+            {{ if eq .Status "Stopped" }}
+            <button formaction="/task/{{ .Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
+            {{ else }}
+            <button formaction="/task/{{ .Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+            {{ end }}
+        </td>
+        <td>
+            <a href="/task/{{ .Id }}/history">Task history</a>
+        </td>
+    </tr>
+{{ end }}
+</table>
+</form>
