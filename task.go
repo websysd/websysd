@@ -97,7 +97,7 @@ func (t *Task) NewTaskRun() *TaskRun {
 	}
 
 	bits := strings.SplitN(c, " ", 2)
-	var cmd exec.Cmd
+	var cmd *exec.Cmd
 	if len(bits) == 1 {
 		cmd = exec.Command(bits[0])
 	} else {
