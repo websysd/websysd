@@ -22,7 +22,7 @@ Too many console windows.
 - Active tasks will be killed if `websysd` dies or is stopped
 - Use the `/bin/sh -c` executor on Linux
 - You can load multiple JSON task files, use multiple `-config` flags
-- Environment variables are local to each JSON task file
+- Environment variables are local to each task or JSON task file
 
 ### Screenshots
 
