@@ -5,11 +5,11 @@
 			"Command": "sleep 60",
 			"Environment": {},
 			"Service": true,
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "echo",
-			"Command": "echo $PORT",
+			"Command": "echo \"This is a test\"",
 			"Environment": {
 				"PORT": "9911"
 			}

@@ -96,13 +96,8 @@ func (t *Task) NewTaskRun() *TaskRun {
 		c = strings.Replace(c, "$"+k, v, -1)
 	}
 
-	bits := strings.SplitN(c, " ", 2)
 	var cmd *exec.Cmd
-	if len(bits) == 1 {
-		cmd = exec.Command(bits[0])
-	} else {
-		cmd = exec.Command(bits[0], bits[1])
-	}
+	cmd = exec.Command("/bin/sh", "-c", c)
 
 	tr := &TaskRun{
 		Id:          len(t.TaskRuns),
