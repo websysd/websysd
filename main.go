@@ -16,6 +16,10 @@ func main() {
 	// Create our Gotcha application
 	var app = gotcha.Create(Asset)
 
+	if len(configs) == 0 {
+		configs = append(configs, "./websysd.json")
+	}
+
 	// Load config
 	for _, conf := range configs {
 		log.Info("Loading configuration file: %s", conf)
@@ -26,7 +30,14 @@ func main() {
 		if cfg != nil {
 			for _, t := range cfg.Tasks {
 				log.Info("=> Creating task: %s", t.Name)
-				NewTask(t.Name, t.Command, t.Environment, t.Service, t.Enabled)
+				env := make(map[string]string)
+				for k, v := range cfg.Environment {
+					env[k] = v
+				}
+				for k, v := range t.Environment {
+					env[k] = v
+				}
+				NewTask(t.Name, t.Executor, t.Command, env, t.Service)
 			}
 		}
 	}
@@ -43,8 +54,11 @@ func main() {
 
 	r.Post("/task/(?P<task>\\d+)/start", startTask)
 	r.Post("/task/(?P<task>\\d+)/stop", stopTask)
-	r.Get("/task/(?P<task>\\d+)/history", taskHistory)
+	r.Post("/task/(?P<task>\\d+)/enable", enableServiceTask)
+	r.Post("/task/(?P<task>\\d+)/disable", disableServiceTask)
+	r.Get("/task/(?P<task>\\d+)", taskHistory)
 
+	r.Get("/task/(?P<task>\\d+)/run/(?P<run>\\d+)", taskRun)
 	r.Get("/task/(?P<task>\\d+)/run/(?P<run>\\d+)/stdout", taskRunStdout)
 	r.Get("/task/(?P<task>\\d+)/run/(?P<run>\\d+)/stderr", taskRunStderr)
 
@@ -62,12 +76,22 @@ func main() {
 	<-make(chan int)
 }
 
+func redir(session *http.Session) {
+	redir := "/"
+
+	if k := session.Request.Referer(); len(k) > 0 {
+		redir = k
+	}
+
+	session.Redirect(&url.URL{Path: redir})
+}
+
 func startTask(session *http.Session) {
 	id, _ := strconv.Atoi(session.Stash["task"].(string))
 
 	Tasks[id].Start()
 
-	session.Redirect(&url.URL{Path: "/"})
+	redir(session)
 }
 
 func stopTask(session *http.Session) {
@@ -75,17 +99,49 @@ func stopTask(session *http.Session) {
 
 	Tasks[id].Stop()
 
-	session.Redirect(&url.URL{Path: "/"})
+	redir(session)
+}
+
+func enableServiceTask(session *http.Session) {
+	id, _ := strconv.Atoi(session.Stash["task"].(string))
+
+	Tasks[id].Service = true
+
+	if Tasks[id].ActiveTask == nil {
+		Tasks[id].Start()
+	}
+
+	redir(session)
+}
+
+func disableServiceTask(session *http.Session) {
+	id, _ := strconv.Atoi(session.Stash["task"].(string))
+
+	Tasks[id].Service = false
+
+	redir(session)
 }
 
 func taskHistory(session *http.Session) {
 	id, _ := strconv.Atoi(session.Stash["task"].(string))
 
-	session.Stash["Title"] = "Task history"
+	session.Stash["Title"] = "Task"
 	session.Stash["Page"] = "History"
 	session.Stash["Task"] = Tasks[id]
 
-	session.RenderWithLayout("history.html", "layout.html", "Content")
+	session.RenderWithLayout("task.html", "layout.html", "Content")
+}
+
+func taskRun(session *http.Session) {
+	id, _ := strconv.Atoi(session.Stash["task"].(string))
+	run, _ := strconv.Atoi(session.Stash["run"].(string))
+
+	session.Stash["Title"] = "Task run"
+	session.Stash["Page"] = "TaskRun"
+	session.Stash["Task"] = Tasks[id]
+	session.Stash["TaskRun"] = Tasks[id].TaskRuns[run]
+
+	session.RenderWithLayout("taskrun.html", "layout.html", "Content")
 }
 
 func taskRunStdout(session *http.Session) {
@@ -93,8 +149,10 @@ func taskRunStdout(session *http.Session) {
 	run, _ := strconv.Atoi(session.Stash["run"].(string))
 
 	session.Stash["Title"] = "Task run stdout"
-	session.Stash["Page"] = "History"
+	session.Stash["Page"] = "TaskOutput"
 	session.Stash["Type"] = "stdout"
+	session.Stash["Task"] = Tasks[id]
+	session.Stash["TaskRun"] = Tasks[id].TaskRuns[run]
 	session.Stash["LogOutput"] = Tasks[id].TaskRuns[run].StdoutBuf.String()
 
 	session.RenderWithLayout("log.html", "layout.html", "Content")
@@ -105,8 +163,10 @@ func taskRunStderr(session *http.Session) {
 	run, _ := strconv.Atoi(session.Stash["run"].(string))
 
 	session.Stash["Title"] = "Task run stderr"
-	session.Stash["Page"] = "History"
+	session.Stash["Page"] = "TaskOutput"
 	session.Stash["Type"] = "stderr"
+	session.Stash["Task"] = Tasks[id]
+	session.Stash["TaskRun"] = Tasks[id].TaskRuns[run]
 	session.Stash["LogOutput"] = Tasks[id].TaskRuns[run].StderrBuf.String()
 
 	session.RenderWithLayout("log.html", "layout.html", "Content")

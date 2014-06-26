@@ -1,15 +1,18 @@
 {
+	"Environment": {
+		"WEBSYSD": "true"
+	},
 	"Tasks": [
 		{
 			"Name": "sleep",
 			"Command": "sleep 60",
 			"Environment": {},
-			"Service": true,
-			"Enabled": false
+			"Service": true
 		},
 		{
 			"Name": "echo",
-			"Command": "echo \"This is a test\"",
+			"Command": "echo \"This is a test: $PORT\"",
+			"Executor": ["/bin/sh", "-c"],
 			"Environment": {
 				"PORT": "9911"
 			}

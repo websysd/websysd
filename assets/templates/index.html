@@ -1,51 +1,68 @@
-<form method="post">
-<table class="table">
-	<tr>
-		<th>Task</th>
-		<th>Command</th>
-		<th>Environment</th>
-        <th>Service</th>
-		<th>Active task</th>
-        <th>Status</th>
-        <th>Actions</th>
-        <th></th>
-	</tr>
-{{ range .Tasks }}
-    <tr>
-    	<td>{{ .Name }}</td>
-    	<td>{{ .Command }}</td>
-    	<td>{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
+<style>
+td h4 {
+    margin: 0;
+}
+.container {
+    width: auto;
+}
+td pre {
+    background: none;
+    border: none;
+}
+</style>
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+});
+</script>
+<div class="container">
+    <form method="post">
+    <table class="table table-bordered table-hover">
+        <thead>
+        	<tr>
+        		<th>Task</th>
+        		<th>Environment</th>
+                <th>Service <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="top" title="Services are started automatically"></span></th>
+        		<th>Active task</th>
+                <th>Actions</th>
+        	</tr>
+        </thead>
+        <tbody>
+        {{ range .Tasks }}
+            <tr>
+            	<td>
+                    <h4><a href="/task/{{ .Id }}">{{ .Name }}</a></h4>
+                </td>
+                <td>{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
 {{ end }}</pre>{{ end }}</td>
-        <td>
-            {{ if .Service }}
-                Yes ({{ if .Enabled }}enabled{{ else }}disabled{{ end }})
-            {{ else }}
-                No
-            {{ end }}
-        </td>
-    	<td>
-    		{{ if .ActiveTask }}
-    			{{ .ActiveTask }}
-    			<a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
-    			<a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
-            {{ else }}
-                <i>None</i>
-    		{{ end }}
-    	</td>
-        <td>
-            {{ .Status }}
-        </td>
-        <td>
-            {{ if eq .Status "Stopped" }}
-            <button formaction="/task/{{ .Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
-            {{ else }}
-            <button formaction="/task/{{ .Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
-            {{ end }}
-        </td>
-        <td>
-            <a href="/task/{{ .Id }}/history">Task history</a>
-        </td>
-    </tr>
-{{ end }}
-</table>
-</form>
+                <td>
+                    {{ if not .Service }}
+                    <button formaction="/task/{{ .Id }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
+                    {{ else }}
+                    <button formaction="/task/{{ .Id }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
+                    {{ end }}
+                </td>
+                <td>
+                    {{ if .ActiveTask }}
+                        <a href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
+                        <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+                        <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+                    {{ else }}
+                        <i>None</i>
+                    {{ end }}
+                </td>
+                <td>
+                    {{ if eq .Status "Stopped" }}
+                    <button formaction="/task/{{ .Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
+                    {{ else }}
+                    {{ if .Service }}<div data-toggle="tooltip" data-placement="top" title="Service must be disabled to stop task">{{ end }}
+                    <button {{ if .Service }}disabled{{end}} formaction="/task/{{ .Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+                    {{ if .Service }}</div>{{ end }}
+                    {{ end }}
+                </td>
+            </tr>
+        {{ end }}
+        </tbody>
+    </table>
+    </form>
+</div>

@@ -15,13 +15,20 @@ type Task struct {
 	Id          int
 	Name        string
 	Command     string
+	Executor    []string
 	Environment map[string]string
 
 	ActiveTask *TaskRun
 	TaskRuns   []*TaskRun
 
 	Service bool
-	Enabled bool
+}
+
+func (t *Task) GetExecutor() string {
+	if len(t.Executor) == 0 {
+		return "websysd"
+	}
+	return strings.Join(t.Executor, " ")
 }
 
 type TaskRun struct {
@@ -35,10 +42,11 @@ type TaskRun struct {
 	StdoutBuf   bytes.Buffer
 	StderrBuf   bytes.Buffer
 	Environment map[string]string
+	Executor    []string
 }
 
 func (tr *TaskRun) String() string {
-	return fmt.Sprintf("Process %d", tr.Cmd.Process.Pid)
+	return fmt.Sprintf("Pid %d", tr.Cmd.Process.Pid)
 }
 
 type Event struct {
@@ -46,7 +54,7 @@ type Event struct {
 	Message string
 }
 
-func NewTask(name string, command string, environment map[string]string, service bool, enabled bool) *Task {
+func NewTask(name string, executor []string, command string, environment map[string]string, service bool) *Task {
 	task := &Task{
 		Id:          len(Tasks),
 		Name:        name,
@@ -54,12 +62,12 @@ func NewTask(name string, command string, environment map[string]string, service
 		Environment: environment,
 		TaskRuns:    make([]*TaskRun, 0),
 		Service:     service,
-		Enabled:     enabled,
+		Executor:    executor,
 	}
 	Tasks = append(Tasks, task)
 	TaskIndex[len(Tasks)-1] = task
 
-	if task.Service && task.Enabled {
+	if task.Service {
 		task.Start()
 	}
 
@@ -74,7 +82,7 @@ func (t *Task) Start() {
 		go func() {
 			<-c
 			t.ActiveTask = nil
-			if t.Service && t.Enabled {
+			if t.Service {
 				t.Start()
 				return
 			}
@@ -97,7 +105,12 @@ func (t *Task) NewTaskRun() *TaskRun {
 	}
 
 	var cmd *exec.Cmd
-	cmd = exec.Command("/bin/sh", "-c", c)
+	if len(t.Executor) > 0 {
+		cmd = exec.Command(t.Executor[0], append(t.Executor[1:], c)...)
+	} else {
+		bits := strings.Split(c, " ")
+		cmd = exec.Command(bits[0], bits[1:]...)
+	}
 
 	tr := &TaskRun{
 		Id:          len(t.TaskRuns),
@@ -129,12 +142,18 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		return
 	}
 
+	for k, v := range tr.Environment {
+		log.Info("Adding env var %s = %s", k, v)
+		tr.Cmd.Env = append(tr.Cmd.Env, k + "=" + v)
+	}
+
 	err = tr.Cmd.Start()
 	ev := &Event{time.Now(), fmt.Sprintf("Process %d started: %s", tr.Cmd.Process.Pid, tr.Command)}
 	log.Info(ev.Message)
 	tr.Events = append(tr.Events, ev)
 	if err != nil {
 		tr.Error = err
+		log.Error(err.Error())
 		return
 	}
 	go func() {

@@ -1,2 +1,12 @@
-<h1>{{ .Type }}</h1>
-<pre>{{ .LogOutput }}</pre>
+<style>
+.container {
+    width: auto;
+}
+pre {
+    background: none;
+    border: none;
+}
+</style>
+<div class="container">
+	<pre>{{ .LogOutput }}</pre>
+</div>

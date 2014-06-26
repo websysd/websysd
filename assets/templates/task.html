@@ -1,0 +1,88 @@
+<style>
+.container {
+    width: auto;
+}
+td pre {
+    background: none;
+    border: none;
+    padding: 0;
+}
+</style>
+<div class="container">
+	<form method="post">
+	<table class="table table-condensed">
+		<tr>
+			<th>Task</th>
+			<td>{{ .Task.Name }}</td>
+		</tr>
+		<tr>
+			<th>Executor</th>
+			<td><pre>{{ .Task.GetExecutor }}</pre></td>
+		</tr>
+		<tr>
+			<th>Command</th>
+			<td><pre>{{ .Task.Command }}</pre></td>
+		</tr>
+		<tr>
+			<th>Environment</th>
+			<td>{{ if .Task.Environment }}<pre>{{ range $k, $v := .Task.Environment }}{{ $k }} = {{ $v }}
+{{ end }}</pre>{{ end }}</td>
+		</tr>
+		<tr>
+			<th>Service</th>
+			<td>
+				{{ if not .Task.Service }}
+                <button formaction="/task/{{ .Task.Id }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
+                {{ else }}
+                <button formaction="/task/{{ .Task.Id }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
+                {{ end }}
+			</td>
+		</tr>
+		<tr>
+			<th>Status</th>
+			<td>
+	    		{{ if eq .Task.Status "Stopped" }}
+	    		<button formaction="/task/{{ .Task.Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
+	    		{{ else }}
+	    		<button formaction="/task/{{ .Task.Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+	    		{{ end }}
+			</td>
+		</tr>
+		<tr>
+			<th>Active task</th>
+			<td>
+				{{ if .Task.ActiveTask }}
+	    			<a href="/task/{{ .Task.Id }}/run/{{ .Task.ActiveTask.Id }}">#{{ .Task.ActiveTask.Id }}</a> {{ .Task.ActiveTask }}
+	    			<a class="btn btn-xs btn-default" href="/task/{{ .Task.Id }}/run/{{ .Task.ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+	    			<a class="btn btn-xs btn-default" href="/task/{{ .Task.Id }}/run/{{ .Task.ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+	    		{{ else }}
+	    			<i>None</i>
+	    		{{ end }}
+	    	</td>
+		</tr>
+	</table>
+
+	<table class="table table-bordered table-hover">
+		<tr>
+			<th>Run</th>
+			<th>Pid</th>
+			<th>Started</th>
+			<th>Stopped</th>
+			<th>Logs</th>
+		</tr>
+	{{ $TaskId := .Task.Id }}
+	{{ range .Task.TaskRuns }}
+	    <tr>
+	    	<td><a href="/task/{{ $TaskId }}/run/{{ .Id }}">#{{ .Id }}</a></td>
+	    	<td>{{ .Cmd.Process.Pid }}</td>
+	    	<td>{{ if not .Started.IsZero }}{{ .Started }}{{ end }}</td>
+	    	<td>{{ if not .Stopped.IsZero }}{{ .Stopped }}{{ end }}</td>
+	    	<td>
+	    		<a class="btn btn-xs btn-default" href="/task/{{ $TaskId }}/run/{{ .Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+	    		<a class="btn btn-xs btn-default" href="/task/{{ $TaskId }}/run/{{ .Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+	    	</td>
+	    </tr>
+	{{ end }}
+	</table>
+	</form>
+</div>

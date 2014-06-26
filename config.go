@@ -6,11 +6,9 @@ import (
 )
 
 type Config struct {
-	Environment *DefaultEnv
+	Environment map[string]string
 	Tasks       []*ConfigTask
 }
-
-type DefaultEnv map[string]string
 
 type ConfigTask struct {
 	Id          int
@@ -18,7 +16,7 @@ type ConfigTask struct {
 	Command     string
 	Environment map[string]string
 	Service     bool
-	Enabled     bool
+	Executor    []string
 }
 
 func LoadConfig(file string) (*Config, error) {
