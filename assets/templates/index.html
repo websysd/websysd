@@ -9,6 +9,10 @@ td pre {
     background: none;
     border: none;
 }
+.maxheight pre {
+    overflow-y: scroll;
+    max-height: 80px;
+}
 </style>
 <script>
 $(function() {
@@ -33,7 +37,7 @@ $(function() {
             	<td>
                     <h4><a href="/task/{{ .Id }}">{{ .Name }}</a></h4>
                 </td>
-                <td>{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
+                <td class="maxheight">{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
 {{ end }}</pre>{{ end }}</td>
                 <td>
                     {{ if not .Service }}
