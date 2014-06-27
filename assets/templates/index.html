@@ -49,6 +49,7 @@ $(function() {
                 <td>
                     {{ if .ActiveTask }}
                         <a href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
+                        <br />
                         <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
                         <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
                     {{ else }}
