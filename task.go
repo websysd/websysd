@@ -162,8 +162,8 @@ func (tr *TaskRun) Start(exitCh chan int) {
 
 		tr.Cmd.Wait()
 
-		log.Info("STDOUT: %s", tr.StdoutBuf.String())
-		log.Info("STDERR: %s", tr.StderrBuf.String())
+		log.Trace("STDOUT: %s", tr.StdoutBuf.String())
+		log.Trace("STDERR: %s", tr.StderrBuf.String())
 
 		ps := tr.Cmd.ProcessState
 		sy := ps.Sys().(syscall.WaitStatus)
