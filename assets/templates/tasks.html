@@ -29,6 +29,7 @@ $(function() {
 });
 </script>
 <div class="container">
+    <h2>{{ .Workspace.Name }}</h2>
     <form method="post">
     <table class="table table-bordered table-hover">
         <thead>
@@ -41,28 +42,29 @@ $(function() {
         	</tr>
         </thead>
         <tbody>
+        {{ $ws := .Workspace }}
         {{ range .Tasks }}
             <tr>
             	<td>
-                    <h4><a href="/task/{{ .Id }}" class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}">{{ .Name }}</a></h4>
+                    <h4><a href="/workspace/{{ $ws.Name }}/task/{{ .Name }}" class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}">{{ .Name }}</a></h4>
                 </td>
                 <td class="maxheight">{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
 {{ end }}</pre>{{ end }}</td>
                 <td>
                     {{ if not .Service }}
-                    <button formaction="/task/{{ .Id }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
+                    <button formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
                     {{ else }}
-                    <button formaction="/task/{{ .Id }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
+                    <button formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
                     {{ end }}
                 </td>
                 <td>
                     {{ if .ActiveTask }}
                         <div class="task-run">
-                            <a href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
+                            <a href="/workspace/{{ $ws.Name }}/task/{{ .Name }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
                         </div>
                         <div class="task-output">
-                            <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
-                            <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+                            <a class="btn btn-xs btn-default" href="/workspace/{{ $ws.Name }}/task/{{ .Name }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+                            <a class="btn btn-xs btn-default" href="/workspace/{{ $ws.Name }}/task/{{ .Name }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
                         </div>
                     {{ else }}
                         <i>None</i>
@@ -70,10 +72,10 @@ $(function() {
                 </td>
                 <td>
                     {{ if eq .Status "Stopped" }}
-                    <button formaction="/task/{{ .Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
+                    <button formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
                     {{ else }}
                     {{ if .Service }}<div data-toggle="tooltip" data-placement="top" title="Service must be disabled to stop task">{{ end }}
-                    <button {{ if .Service }}disabled{{end}} formaction="/task/{{ .Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+                    <button {{ if .Service }}disabled{{end}} formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
                     {{ if .Service }}</div>{{ end }}
                     {{ end }}
                 </td>

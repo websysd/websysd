@@ -31,15 +31,18 @@
 			  <!-- Collect the nav links, forms, and other content for toggling -->
 			  <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 			    <ul class="nav navbar-nav">
-			      <li{{ if eq .Page "Tasks" }} class="active"{{end}}><a href="/"><span class="glyphicon glyphicon-tasks"></span> Tasks</a></li>
+			      <li{{ if eq .Page "Workspaces" }} class="active"{{end}}><a href="/"><span class="glyphicon glyphicon-tasks"></span> Workspaces</a></li>
+			      {{ if .Workspace }}
+			      	<li{{ if eq .Page "Tasks" }} class="active"{{end}}><a href="/workspace/{{ .Workspace.Name }}"><span class="glyphicon glyphicon-tasks"></span> {{ .Workspace.Name }}</a></li>
+			      {{ end }}
 			      {{ if .Task }}
-			      	<li {{ if eq .Page "History" }}class="active"{{ end }}><a href="/task/{{ .Task.Id }}"><span class="glyphicon glyphicon-dashboard"></span> Task: {{ .Task.Name }}</a></li>
+			      	<li {{ if eq .Page "History" }}class="active"{{ end }}><a href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}"><span class="glyphicon glyphicon-dashboard"></span> {{ .Task.Name }}</a></li>
 			      {{ end }}
 			      {{ if .TaskRun }}
-			      	<li {{ if eq .Page "TaskRun" }}class="active"{{ end }}><a href="/task/{{ .Task.Id }}/run/{{ .TaskRun.Id }}"><span class="glyphicon glyphicon-play"></span> Run: {{ .TaskRun.Id }}</a></li>
+			      	<li {{ if eq .Page "TaskRun" }}class="active"{{ end }}><a href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/run/{{ .TaskRun.Id }}"><span class="glyphicon glyphicon-play"></span> Run #{{ .TaskRun.Id }}</a></li>
 			      {{ end }}
 			      {{ if eq .Page "TaskOutput" }}
-			      	<li class="active"><a href=""><span class="glyphicon glyphicon-file"></span>Log: {{ .Type }}</a></li>
+			      	<li class="active"><a href=""><span class="glyphicon glyphicon-file"></span> {{ .Type }}</a></li>
 			      {{ end }}
 			    </ul>
 			  </div>

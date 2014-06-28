@@ -14,6 +14,27 @@ import (
 	"time"
 )
 
+var Workspaces = make(map[string]*Workspace)
+
+type Workspace struct {
+	Name        string
+	Environment map[string]string
+	Tasks       map[string]*Task
+}
+
+func NewWorkspace(name string, environment map[string]string) *Workspace {
+	ws := &Workspace{
+		Name:        name,
+		Environment: environment,
+		Tasks:       make(map[string]*Task),
+	}
+	if _, ok := ws.Environment["WORKSPACE"]; !ok {
+		ws.Environment["WORKSPACE"] = name
+	}
+	Workspaces[name] = ws
+	return ws
+}
+
 type Task struct {
 	Id          int
 	Name        string
@@ -136,23 +157,17 @@ type Event struct {
 	Message string
 }
 
-func NewTask(name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string) *Task {
-	id := len(Tasks)
-
+func NewTask(workspace *Workspace, name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string) *Task {
 	environment = AddDefaultVars(environment)
 
 	if _, ok := environment["TASK"]; !ok {
 		environment["TASK"] = name
-	}
-	if _, ok := environment["TASKID"]; !ok {
-		environment["TASKID"] = strconv.Itoa(id)
 	}
 
 	stdout = ReplaceVars(stdout, environment)
 	stderr = ReplaceVars(stderr, environment)
 
 	task := &Task{
-		Id:          id,
 		Name:        name,
 		Command:     command,
 		Environment: environment,
@@ -162,12 +177,12 @@ func NewTask(name string, executor []string, command string, environment map[str
 		Stdout:      stdout,
 		Stderr:      stderr,
 	}
-	Tasks = append(Tasks, task)
-	TaskIndex[len(Tasks)-1] = task
 
 	if task.Service {
 		task.Start()
 	}
+
+	workspace.Tasks[name] = task
 
 	return task
 }
@@ -277,12 +292,16 @@ func (tr *TaskRun) Start(exitCh chan int) {
 	}
 
 	err = tr.Cmd.Start()
-	ev := &Event{time.Now(), fmt.Sprintf("Process %d started: %s", tr.Cmd.Process.Pid, tr.Command)}
-	log.Info(ev.Message)
-	tr.Events = append(tr.Events, ev)
+	if tr.Cmd.Process != nil {
+		ev := &Event{time.Now(), fmt.Sprintf("Process %d started: %s", tr.Cmd.Process.Pid, tr.Command)}
+		log.Info(ev.Message)
+		tr.Events = append(tr.Events, ev)
+	}
 	if err != nil {
 		tr.Error = err
 		log.Error(err.Error())
+		tr.StdoutBuf.Close()
+		tr.StderrBuf.Close()
 		return
 	}
 	go func() {
@@ -292,7 +311,7 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		tr.Cmd.Wait()
 
 		tr.StdoutBuf.Close()
-		tr.StdoutBuf.Close()
+		tr.StderrBuf.Close()
 
 		log.Trace("STDOUT: %s", tr.StdoutBuf.String())
 		log.Trace("STDERR: %s", tr.StderrBuf.String())
@@ -324,6 +343,3 @@ func (t *Task) Status() string {
 	}
 	return "Stopped"
 }
-
-var Tasks = make([]*Task, 0)
-var TaskIndex = make(map[int]*Task)

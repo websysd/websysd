@@ -42,9 +42,9 @@ $(function() {
 			<th>Service</th>
 			<td>
 				{{ if not .Task.Service }}
-                <button formaction="/task/{{ .Task.Id }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
+                <button formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
                 {{ else }}
-                <button formaction="/task/{{ .Task.Id }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
+                <button formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
                 {{ end }}
 			</td>
 		</tr>
@@ -52,10 +52,10 @@ $(function() {
 			<th>Status</th>
 			<td>
 	    		{{ if eq .Task.Status "Stopped" }}
-	    		<button formaction="/task/{{ .Task.Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
+	    		<button formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
 	    		{{ else }}
 		    		{{ if .Task.Service }}<div data-toggle="tooltip" data-placement="left" title="Service must be disabled to stop task">{{ end }}
-	                <button {{ if .Task.Service }}disabled{{end}} formaction="/task/{{ .Task.Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+	                <button {{ if .Task.Service }}disabled{{end}} formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
 	                {{ if .Task.Service }}</div>{{ end }}
 	    		{{ end }}
 			</td>
@@ -64,9 +64,9 @@ $(function() {
 			<th>Active task</th>
 			<td>
 				{{ if .Task.ActiveTask }}
-	    			<a href="/task/{{ .Task.Id }}/run/{{ .Task.ActiveTask.Id }}">#{{ .Task.ActiveTask.Id }}</a> {{ .Task.ActiveTask }}
-	    			<a class="btn btn-xs btn-default" href="/task/{{ .Task.Id }}/run/{{ .Task.ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
-	    			<a class="btn btn-xs btn-default" href="/task/{{ .Task.Id }}/run/{{ .Task.ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+	    			<a href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/run/{{ .Task.ActiveTask.Id }}">#{{ .Task.ActiveTask.Id }}</a> {{ .Task.ActiveTask }}
+	    			<a class="btn btn-xs btn-default" href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/run/{{ .Task.ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+	    			<a class="btn btn-xs btn-default" href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/run/{{ .Task.ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
 	    		{{ else }}
 	    			<i>None</i>
 	    		{{ end }}
@@ -82,10 +82,11 @@ $(function() {
 			<th>Stopped</th>
 			<th>Logs</th>
 		</tr>
-	{{ $TaskId := .Task.Id }}
+	{{ $TaskId := .Task.Name }}
+	{{ $WsId := .Workspace.Name }}
 	{{ range .Task.TaskRuns }}
 	    <tr>
-	    	<td><a href="/task/{{ $TaskId }}/run/{{ .Id }}">#{{ .Id }}</a></td>
+	    	<td><a href="/workspace/{{ $WsId }}/task/{{ $TaskId }}/run/{{ .Id }}">#{{ .Id }}</a></td>
 	    	<td>{{ .Cmd.Process.Pid }}</td>
 	    	<td>{{ if not .Started.IsZero }}{{ .Started }}{{ end }}</td>
 	    	<td>{{ if not .Stopped.IsZero }}{{ .Stopped }}{{ end }}</td>

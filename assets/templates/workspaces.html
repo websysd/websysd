@@ -1,0 +1,89 @@
+<style>
+td h4 {
+    margin: 0;
+}
+.container {
+    width: auto;
+}
+td pre {
+    background: none;
+    border: none;
+}
+.maxheight pre {
+    overflow-y: scroll;
+    max-height: 80px;
+}
+.task-output {
+    margin-top: 5px;
+}
+.table tr:hover {
+    cursor: pointer;
+}
+</style>
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+    $('.table tr').click(function(e) {
+        window.location.href = $(e.target).parents('tr').find("td a").attr('href')
+    });
+});
+</script>
+<div class="container">
+    {{ range .Workspaces }}
+        {{ $ws := . }}
+        <h2><a href="/workspace/{{ $ws.Name }}">{{ $ws.Name }}</a></h2>
+        <form method="post">
+        <table class="table table-bordered table-hover">
+            <thead>
+            	<tr>
+            		<th>Task</th>
+            		<th>Environment</th>
+                    <th>Service <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="top" title="Services are started automatically"></span></th>
+            		<th>Active task</th>
+                    <th>Actions</th>
+            	</tr>
+            </thead>
+            <tbody>
+            {{ range .Tasks }}
+                <tr>
+                	<td>
+                        <h4><a href="/workspace/{{ $ws.Name }}/task/{{ .Name }}" class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}">{{ .Name }}</a></h4>
+                    </td>
+                    <td class="maxheight">{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
+    {{ end }}</pre>{{ end }}</td>
+                    <td>
+                        {{ if not .Service }}
+                        <button formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/enable" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Enable</button>
+                        {{ else }}
+                        <button formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/disable" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Disable</button>
+                        {{ end }}
+                    </td>
+                    <td>
+                        {{ if .ActiveTask }}
+                            <div class="task-run">
+                                <a href="/workspace/{{ $ws.Name }}/task/{{ .Name }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
+                            </div>
+                            <div class="task-output">
+                                <a class="btn btn-xs btn-default" href="/workspace/{{ $ws.Name }}/task/{{ .Name }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+                                <a class="btn btn-xs btn-default" href="/workspace/{{ $ws.Name }}/task/{{ .Name }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+                            </div>
+                        {{ else }}
+                            <i>None</i>
+                        {{ end }}
+                    </td>
+                    <td>
+                        {{ if eq .Status "Stopped" }}
+                        <button formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
+                        {{ else }}
+                        {{ if .Service }}<div data-toggle="tooltip" data-placement="top" title="Service must be disabled to stop task">{{ end }}
+                        <button {{ if .Service }}disabled{{end}} formaction="/workspace/{{ $ws.Name }}/task/{{ .Name }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+                        {{ if .Service }}</div>{{ end }}
+                        {{ end }}
+                    </td>
+                </tr>
+            {{ end }}
+            </tbody>
+        </table>
+        </form>
+    {{ end }}
+</div>
