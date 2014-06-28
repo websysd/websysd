@@ -8,13 +8,15 @@ td pre {
     padding: 0;
 }
 </style>
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+});
+</script>
 <div class="container">
+	<h2 {{ if .Task.ActiveTask}}class="text-success"{{ else }}class="text-danger"{{ end }}>{{ .Task.Name }}</h2>
 	<form method="post">
 	<table class="table table-condensed">
-		<tr>
-			<th>Task</th>
-			<td>{{ .Task.Name }}</td>
-		</tr>
 		<tr>
 			<th>Executor</th>
 			<td><pre>{{ .Task.GetExecutor }}</pre></td>
@@ -22,6 +24,14 @@ td pre {
 		<tr>
 			<th>Command</th>
 			<td><pre>{{ .Task.Command }}</pre></td>
+		</tr>
+		<tr>
+			<th>Stdout</th>
+			<td>{{ if .Task.Stdout }}<pre>{{ .Task.Stdout }}</pre>{{ else }}In-memory{{ end }}</td>
+		</tr>
+		<tr>
+			<th>Stderr</th>
+			<td>{{ if .Task.Stderr }}<pre>{{ .Task.Stderr }}</pre>{{ else }}In-memory{{ end }}</td>
 		</tr>
 		<tr>
 			<th>Environment</th>
@@ -44,7 +54,9 @@ td pre {
 	    		{{ if eq .Task.Status "Stopped" }}
 	    		<button formaction="/task/{{ .Task.Id }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
 	    		{{ else }}
-	    		<button formaction="/task/{{ .Task.Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+		    		{{ if .Task.Service }}<div data-toggle="tooltip" data-placement="left" title="Service must be disabled to stop task">{{ end }}
+	                <button {{ if .Task.Service }}disabled{{end}} formaction="/task/{{ .Task.Id }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+	                {{ if .Task.Service }}</div>{{ end }}
 	    		{{ end }}
 			</td>
 		</tr>

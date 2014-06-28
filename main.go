@@ -37,7 +37,7 @@ func main() {
 				for k, v := range t.Environment {
 					env[k] = v
 				}
-				NewTask(t.Name, t.Executor, t.Command, env, t.Service)
+				NewTask(t.Name, t.Executor, t.Command, env, t.Service, t.Stdout, t.Stderr)
 			}
 		}
 	}

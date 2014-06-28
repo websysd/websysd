@@ -15,7 +15,16 @@
 			"Executor": ["/bin/sh", "-c"],
 			"Environment": {
 				"PORT": "9911"
-			}
+			},
+			"Stdout": "/tmp/$TASK-$RUN.out",
+			"Stderr": "/tmp/$TASK-$RUN.err"
+		},
+		{
+			"Name": "env",
+			"Command": "env",
+			"Executor": ["/bin/sh", "-c"],
+			"Stdout": "/tmp/$TASK-$RUN.out",
+			"Stderr": "/tmp/$TASK-$RUN.err"
 		}
 	]
 }

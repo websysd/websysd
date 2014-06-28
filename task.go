@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/ian-kent/go-log/log"
 	"io"
+	"io/ioutil"
+	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -17,6 +20,8 @@ type Task struct {
 	Command     string
 	Executor    []string
 	Environment map[string]string
+	Stdout      string
+	Stderr      string
 
 	ActiveTask *TaskRun
 	TaskRuns   []*TaskRun
@@ -39,8 +44,10 @@ type TaskRun struct {
 	Stopped     time.Time
 	Events      []*Event
 	Command     string
-	StdoutBuf   bytes.Buffer
-	StderrBuf   bytes.Buffer
+	Stdout      string
+	Stderr      string
+	StdoutBuf   LogWriter
+	StderrBuf   LogWriter
 	Environment map[string]string
 	Executor    []string
 }
@@ -49,20 +56,111 @@ func (tr *TaskRun) String() string {
 	return fmt.Sprintf("Pid %d", tr.Cmd.Process.Pid)
 }
 
+type LogWriter interface {
+	Write(p []byte) (n int, err error)
+	String() string
+	Len() int64
+	Close()
+}
+
+type FileLogWriter struct {
+	filename string
+	file     *os.File
+}
+
+func NewFileLogWriter(file string) (*FileLogWriter, error) {
+	f, err := os.Create(file)
+	if err != nil {
+		return nil, err
+	}
+
+	flw := &FileLogWriter{
+		filename: file,
+		file:     f,
+	}
+	return flw, nil
+}
+
+func (flw FileLogWriter) Close() {
+	flw.file.Close()
+}
+
+func (flw FileLogWriter) Write(p []byte) (n int, err error) {
+	return flw.file.Write(p)
+}
+
+func (flw FileLogWriter) String() string {
+	b, err := ioutil.ReadFile(flw.filename)
+	if err == nil {
+		return string(b)
+	}
+	return ""
+}
+
+func (flw FileLogWriter) Len() int64 {
+	s, err := os.Stat(flw.filename)
+	if err == nil {
+		return s.Size()
+	}
+	return 0
+}
+
+type InMemoryLogWriter struct {
+	buffer *bytes.Buffer
+}
+
+func NewInMemoryLogWriter() InMemoryLogWriter {
+	imlw := InMemoryLogWriter{}
+	imlw.buffer = new(bytes.Buffer)
+	return imlw
+}
+
+func (imlw InMemoryLogWriter) Write(p []byte) (n int, err error) {
+	return imlw.buffer.Write(p)
+}
+
+func (imlw InMemoryLogWriter) String() string {
+	return imlw.buffer.String()
+}
+
+func (imlw InMemoryLogWriter) Len() int64 {
+	return int64(imlw.buffer.Len())
+}
+
+func (imlw InMemoryLogWriter) Close() {
+
+}
+
 type Event struct {
 	Time    time.Time
 	Message string
 }
 
-func NewTask(name string, executor []string, command string, environment map[string]string, service bool) *Task {
+func NewTask(name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string) *Task {
+	id := len(Tasks)
+
+	environment = AddDefaultVars(environment)
+
+	if _, ok := environment["TASK"]; !ok {
+		environment["TASK"] = name
+	}
+	if _, ok := environment["TASKID"]; !ok {
+		environment["TASKID"] = strconv.Itoa(id)
+	}
+
+	stdout = ReplaceVars(stdout, environment)
+	stderr = ReplaceVars(stderr, environment)
+
 	task := &Task{
-		Id:          len(Tasks),
+		Id:          id,
 		Name:        name,
 		Command:     command,
 		Environment: environment,
 		TaskRuns:    make([]*TaskRun, 0),
 		Service:     service,
 		Executor:    executor,
+		Stdout:      stdout,
+		Stderr:      stderr,
 	}
 	Tasks = append(Tasks, task)
 	TaskIndex[len(Tasks)-1] = task
@@ -98,11 +196,10 @@ func (t *Task) Stop() {
 }
 
 func (t *Task) NewTaskRun() *TaskRun {
-	// FIXME needs improving (e.g. escaping - or maybe just use bash)
+	run := len(t.TaskRuns)
+
 	c := t.Command
-	for k, v := range t.Environment {
-		c = strings.Replace(c, "$"+k, v, -1)
-	}
+	c = ReplaceVars(c, t.Environment)
 
 	var cmd *exec.Cmd
 	if len(t.Executor) > 0 {
@@ -112,12 +209,21 @@ func (t *Task) NewTaskRun() *TaskRun {
 		cmd = exec.Command(bits[0], bits[1:]...)
 	}
 
+	vars := map[string]string{
+		"TASK": strconv.Itoa(t.Id),
+		"RUN":  strconv.Itoa(run),
+	}
+	stdout := ReplaceVars(t.Stdout, vars)
+	stderr := ReplaceVars(t.Stderr, vars)
+
 	tr := &TaskRun{
-		Id:          len(t.TaskRuns),
+		Id:          run,
 		Events:      make([]*Event, 0),
 		Cmd:         cmd,
 		Command:     t.Command,
 		Environment: make(map[string]string),
+		Stdout:      stdout,
+		Stderr:      stderr,
 	}
 
 	for k, v := range t.Environment {
@@ -142,9 +248,32 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		return
 	}
 
+	if len(tr.Stdout) > 0 {
+		wr, err := NewFileLogWriter(tr.Stdout)
+		if err != nil {
+			log.Error("Unable to open file %s: %s", tr.Stdout, err.Error())
+			tr.StdoutBuf = NewInMemoryLogWriter()
+		} else {
+			tr.StdoutBuf = wr
+		}
+	} else {
+		tr.StdoutBuf = NewInMemoryLogWriter()
+	}
+	if len(tr.Stderr) > 0 {
+		wr, err := NewFileLogWriter(tr.Stderr)
+		if err != nil {
+			log.Error("Unable to open file %s: %s", tr.Stderr, err.Error())
+			tr.StderrBuf = NewInMemoryLogWriter()
+		} else {
+			tr.StderrBuf = wr
+		}
+	} else {
+		tr.StderrBuf = NewInMemoryLogWriter()
+	}
+
 	for k, v := range tr.Environment {
 		log.Info("Adding env var %s = %s", k, v)
-		tr.Cmd.Env = append(tr.Cmd.Env, k + "=" + v)
+		tr.Cmd.Env = append(tr.Cmd.Env, k+"="+v)
 	}
 
 	err = tr.Cmd.Start()
@@ -157,10 +286,13 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		return
 	}
 	go func() {
-		go io.Copy(&tr.StdoutBuf, stdout)
-		go io.Copy(&tr.StderrBuf, stderr)
+		go io.Copy(tr.StdoutBuf, stdout)
+		go io.Copy(tr.StderrBuf, stderr)
 
 		tr.Cmd.Wait()
+
+		tr.StdoutBuf.Close()
+		tr.StdoutBuf.Close()
 
 		log.Trace("STDOUT: %s", tr.StdoutBuf.String())
 		log.Trace("STDERR: %s", tr.StderrBuf.String())

@@ -13,10 +13,19 @@ td pre {
     overflow-y: scroll;
     max-height: 80px;
 }
+.task-output {
+    margin-top: 5px;
+}
+.table tr:hover {
+    cursor: pointer;
+}
 </style>
 <script>
 $(function() {
     $("[data-toggle='tooltip']").tooltip();
+    $('.table tr').click(function(e) {
+        window.location.href = $(e.target).parents('tr').find("td a").attr('href')
+    });
 });
 </script>
 <div class="container">
@@ -35,7 +44,7 @@ $(function() {
         {{ range .Tasks }}
             <tr>
             	<td>
-                    <h4><a href="/task/{{ .Id }}">{{ .Name }}</a></h4>
+                    <h4><a href="/task/{{ .Id }}" class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}">{{ .Name }}</a></h4>
                 </td>
                 <td class="maxheight">{{ if .Environment }}<pre>{{ range $k, $v := .Environment }}{{ $k }} = {{ $v }}
 {{ end }}</pre>{{ end }}</td>
@@ -48,10 +57,13 @@ $(function() {
                 </td>
                 <td>
                     {{ if .ActiveTask }}
-                        <a href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
-                        <br />
-                        <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
-                        <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+                        <div class="task-run">
+                            <a href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}">#{{ .ActiveTask.Id }}</a> {{ .ActiveTask }}
+                        </div>
+                        <div class="task-output">
+                            <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+                            <a class="btn btn-xs btn-default" href="/task/{{ .Id }}/run/{{ .ActiveTask.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+                        </div>
                     {{ else }}
                         <i>None</i>
                     {{ end }}

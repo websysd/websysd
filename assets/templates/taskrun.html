@@ -8,13 +8,15 @@ td pre {
     padding: 0;
 }
 </style>
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+});
+</script>
 <div class="container">
+	<h2>{{ .Task.Name }} #{{ .TaskRun.Id }}</h2>
 	<form method="post">
 	<table class="table table-condensed">
-		<tr>
-			<th>Task run</th>
-			<td>{{ .Task.Name }} #{{ .TaskRun.Id }}</td>
-		</tr>
 		<tr>
 			<th>Executor</th>
 			<td><pre>{{ .Task.GetExecutor }}</pre></td>
@@ -43,14 +45,14 @@ td pre {
 		<tr>
 			<th>Stdout</th>
 			<td>
-				{{ .TaskRun.StdoutBuf.Len }} bytes
+				{{ if .TaskRun.Stdout }}<pre>{{ .TaskRun.Stdout }}</pre>{{ else }}In-memory{{ end }} - {{ .TaskRun.StdoutBuf.Len }} bytes
 				<a class="btn btn-xs btn-default" href="/task/{{ .Task.Id }}/run/{{ .TaskRun.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
 			</td>
 		</tr>
 		<tr>
 			<th>Stderr</th>
 			<td>
-				{{ .TaskRun.StderrBuf.Len }} bytes
+				{{ if .TaskRun.Stderr }}<pre>{{ .TaskRun.Stderr }}</pre>{{ else }}In-memory{{ end }} - {{ .TaskRun.StderrBuf.Len }} bytes
 	    		<a class="btn btn-xs btn-default" href="/task/{{ .Task.Id }}/run/{{ .TaskRun.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
 	    	</td>
 		</tr>

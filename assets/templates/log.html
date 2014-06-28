@@ -8,5 +8,6 @@ pre {
 }
 </style>
 <div class="container">
+	<h2>{{ .Task.Name }} #{{ .TaskRun.Id }} - {{ .Type }}</h2>
 	<pre>{{ .LogOutput }}</pre>
 </div>

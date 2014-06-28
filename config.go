@@ -17,6 +17,8 @@ type ConfigTask struct {
 	Environment map[string]string
 	Service     bool
 	Executor    []string
+	Stdout      string
+	Stderr      string
 }
 
 func LoadConfig(file string) (*Config, error) {
