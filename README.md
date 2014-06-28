@@ -7,9 +7,18 @@ And written in Go :)
 
 ### Getting started
 
-- Create a JSON task file - see [websysd.json](websysd.json) for an example
-- Start `websysd -config taskfile.json`
+- Optionally set a global environment - see [websysd.json](websysd.json) for an example
+- Create a JSON workspace file - see [workspace.json](workspace.json) for an example
+- Start `websysd`
 - Open [http://localhost:7050](http://localhost:7050)
+
+If you didn't name your config files `websysd.json` and `workspace.json`:
+
+    websysd -global websysd.local.json -workspace myworkspace.json
+
+And if you want to load multiple workspaces:
+
+    websysd -workspace myworkspace.json -workspace someproject.json
 
 ### Why
 
@@ -18,11 +27,10 @@ Too many console windows.
 ### Useful info
 
 - None of your environment is kept - explicitly set anything you need
-- Logs are (currently) stored in-memory - you might get out of memory errors!
+  - This includes `$PATH` - you might want to set it to `/bin:/usr/local/bin`
+- Logs are stored in memory by default (set task Stdout/Stderr to a filename)
 - Active tasks will be killed if `websysd` dies or is stopped
 - Use the `/bin/sh -c` executor on Linux
-- You can load multiple JSON task files, use multiple `-config` flags
-- Environment variables are local to each task or JSON task file
 
 ### Screenshots
 
