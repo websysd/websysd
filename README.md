@@ -31,6 +31,8 @@ Too many console windows.
 - Logs are stored in memory by default (set task Stdout/Stderr to a filename)
 - Active tasks will be killed if `websysd` dies or is stopped
 - Use the `/bin/sh -c` executor on Linux
+- Use custom columns and functions to add UI metadata, e.g. display git branch name
+  - see examples in [websysd.json](websysd.json) and [workspace.json](workspace.json)
 
 ### Screenshots
 
