@@ -34,6 +34,7 @@ Too many console windows.
 
 ### Screenshots
 
+![Screenshot of websysd workspace list](/images/websysd_workspaces.png "websysd workspaces")
 ![Screenshot of websysd task list](/images/websysd_tasks.png "websysd task list")
 ![Screenshot of websysd task view](/images/websysd_task.png "websysd task view")
 ![Screenshot of websysd log view](/images/websysd_stdout.png "websysd log view")

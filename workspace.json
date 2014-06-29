@@ -3,12 +3,18 @@
 	"Environment": {
 		"WORKSPACE": "websysd"
 	},
+	"Columns": {
+		"Disk usage": { "DiskUsage": [ "$PATH" ] }
+	},
 	"Tasks": [
 		{
 			"Name": "sleep",
 			"Command": "sleep 60",
 			"Environment": {},
-			"Service": true
+			"Service": true,
+			"Metadata": {
+				"PATH": "/etc"
+			}
 		},
 		{
 			"Name": "echo",
@@ -18,14 +24,20 @@
 				"PORT": "9911"
 			},
 			"Stdout": "/tmp/$TASK-$RUN.out",
-			"Stderr": "/tmp/$TASK-$RUN.err"
+			"Stderr": "/tmp/$TASK-$RUN.err",
+			"Metadata": {
+				"PATH": "/bin"
+			}
 		},
 		{
 			"Name": "env",
 			"Command": "env",
 			"Executor": ["/bin/sh", "-c"],
 			"Stdout": "/tmp/$TASK-$RUN.out",
-			"Stderr": "/tmp/$TASK-$RUN.err"
+			"Stderr": "/tmp/$TASK-$RUN.err",
+			"Metadata": {
+				"PATH": "/tmp"
+			}
 		}
 	]
 }

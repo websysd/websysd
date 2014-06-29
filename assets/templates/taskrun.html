@@ -1,11 +1,15 @@
 <style>
-.container {
-    width: auto;
-}
 td pre {
     background: none;
     border: none;
     padding: 0;
+}
+.table th {
+    background: #f5f5f5;
+}
+.scroller {
+	max-height: 120px;
+	overflow-y: scroll;
 }
 </style>
 <script>
@@ -14,11 +18,11 @@ $(function() {
 });
 </script>
 <div class="container">
-	<h2>{{ .Task.Name }} #{{ .TaskRun.Id }}</h2>
+	<h2 class="{{ if not .TaskRun.Started.IsZero }}{{ if .TaskRun.Stopped.IsZero }}text-info{{ else }}{{ if gt .TaskRun.WaitStatus.ExitStatus 0 }}text-danger{{ else }}text-success{{ end }}{{ end }}{{ end }}">{{ .Task.Name }} #{{ .TaskRun.Id }}</h2>
 	<form method="post">
 	<table class="table table-condensed">
 		<tr>
-			<th>Executor</th>
+			<th style="width: 130px">Executor</th>
 			<td><pre>{{ .Task.GetExecutor }}</pre></td>
 		</tr>
 		<tr>
@@ -27,7 +31,7 @@ $(function() {
 		</tr>
 		<tr>
 			<th>Environment</th>
-			<td>{{ if .TaskRun.Environment }}<pre>{{ range $k, $v := .TaskRun.Environment }}{{ $k }} = {{ $v }}
+			<td>{{ if .TaskRun.Environment }}<pre class="scroller">{{ range $k, $v := .TaskRun.Environment }}{{ $k }} = {{ $v }}
 {{ end }}</pre>{{ end }}</td>
 		</tr>
 		<tr>
@@ -41,6 +45,10 @@ $(function() {
 		<tr>
 			<th>Pid</th>
 			<td>{{ .TaskRun.Cmd.Process.Pid }}</td>
+		</tr>
+		<tr>
+			<th>Exit status</th>
+			<td>{{ if not .TaskRun.Stopped.IsZero }}{{ .TaskRun.WaitStatus.ExitStatus }}{{ else }}<i>None</i>{{ end }}</td>
 		</tr>
 		<tr>
 			<th>Stdout</th>

@@ -4,15 +4,26 @@ import (
 	"encoding/json"
 	"github.com/ian-kent/go-log/log"
 	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
-var ConfigEnvironment = make(map[string]string)
+var GlobalConfigWorkspace *ConfigWorkspace
 var ConfigWorkspaces = make(map[string]*ConfigWorkspace)
 
 type ConfigWorkspace struct {
+	Functions   map[string]*ConfigFunction
 	Environment map[string]string
 	Name        string
 	Tasks       []*ConfigTask
+	IsLocked    bool
+	Columns     map[string]map[string][]string
+}
+
+type ConfigFunction struct {
+	Args     []string
+	Command  string
+	Executor []string
 }
 
 type ConfigTask struct {
@@ -24,10 +35,22 @@ type ConfigTask struct {
 	Executor    []string
 	Stdout      string
 	Stderr      string
+	Metadata    map[string]string
 }
 
 func LoadConfigFile(file string) (*ConfigWorkspace, error) {
-	b, err := ioutil.ReadFile(file)
+	var b []byte
+	var err error
+	var locked bool
+
+	if strings.HasPrefix(file, "http://") ||
+		strings.HasPrefix(file, "https://") {
+		b, err = ReadHttp(file)
+		locked = true
+	} else {
+		b, err = ioutil.ReadFile(file)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +61,24 @@ func LoadConfigFile(file string) (*ConfigWorkspace, error) {
 		return nil, err
 	}
 
+	cfg.IsLocked = locked
+
 	return cfg, nil
+}
+
+func ReadHttp(url string) ([]byte, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	res.Body.Close()
+	return b, nil
 }
 
 func LoadConfig(global string, workspaces []string) {
@@ -49,9 +89,7 @@ func LoadConfig(global string, workspaces []string) {
 		log.Error("Error loading global configuration: %s", err.Error())
 	}
 	if cfg != nil {
-		for k, v := range cfg.Environment {
-			ConfigEnvironment[k] = v
-		}
+		GlobalConfigWorkspace = cfg
 	}
 
 	// Load workspaces
@@ -59,7 +97,7 @@ func LoadConfig(global string, workspaces []string) {
 		log.Info("Loading workspace file: %s", conf)
 		cfg, err := LoadConfigFile(conf)
 		if err != nil {
-			log.Error("Error loading global configuration: %s", err.Error())
+			log.Error("Error loading workspace: %s", err.Error())
 		}
 		if cfg != nil {
 			ConfigWorkspaces[cfg.Name] = cfg

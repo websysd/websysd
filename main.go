@@ -25,6 +25,17 @@ func main() {
 
 	LoadConfig(global, workspaces)
 
+	GlobalWorkspace = NewWorkspace(GlobalConfigWorkspace.Name, GlobalConfigWorkspace.Environment, make(map[string]map[string][]string))
+	for fn, args := range GlobalConfigWorkspace.Functions {
+		log.Info("=> Creating global function: %s", fn)
+		GlobalWorkspace.Functions[fn] = &Function{
+			Name:     fn,
+			Args:     args.Args,
+			Command:  args.Command,
+			Executor: args.Executor,
+		}
+	}
+
 	for _, ws := range ConfigWorkspaces {
 		log.Info("=> Creating workspace: %s", ws.Name)
 
@@ -33,12 +44,20 @@ func main() {
 			log.Warn("Workspace %s already exists, merging tasks and environment")
 			workspace = wks
 		} else {
-			workspace = NewWorkspace(ws.Name, ws.Environment)
+			workspace = NewWorkspace(ws.Name, ws.Environment, ws.Columns)
+			Workspaces[ws.Name] = workspace
 		}
 
-		for k, v := range ws.Environment {
-			log.Debug("Setting workspace environment %s => %s", k, v)
-			workspace.Environment[k] = v
+		workspace.IsLocked = ws.IsLocked
+
+		for fn, args := range ws.Functions {
+			log.Info("=> Creating workspace function: %s", fn)
+			workspace.Functions[fn] = &Function{
+				Name:     fn,
+				Args:     args.Args,
+				Command:  args.Command,
+				Executor: args.Executor,
+			}
 		}
 
 		for _, t := range ws.Tasks {
@@ -56,7 +75,8 @@ func main() {
 				env[k] = v
 			}
 
-			NewTask(workspace, t.Name, t.Executor, t.Command, env, t.Service, t.Stdout, t.Stderr)
+			task := NewTask(workspace, t.Name, t.Executor, t.Command, env, t.Service, t.Stdout, t.Stderr, t.Metadata)
+			workspace.Tasks[t.Name] = task
 		}
 	}
 

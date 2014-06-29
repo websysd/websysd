@@ -14,24 +14,109 @@ import (
 	"time"
 )
 
+var GlobalWorkspace *Workspace
 var Workspaces = make(map[string]*Workspace)
 
 type Workspace struct {
 	Name        string
 	Environment map[string]string
 	Tasks       map[string]*Task
+	IsLocked    bool
+	Functions   map[string]*Function
+	Columns     map[string]map[string][]string
 }
 
-func NewWorkspace(name string, environment map[string]string) *Workspace {
+func (ws *Workspace) GetColumn(task *Task, name string) string {
+	log.Info("GetColumn: %s => %s", task.Name, name)
+	col := ws.Columns[name]
+	var fn []string
+	var nm string
+	for n, args := range col {
+		nm = n
+		fn = args
+		break
+	}
+	return ws.ExecFunction(task, nm, fn...)
+}
+
+func (ws *Workspace) ExecFunction(task *Task, name string, args ...string) string {
+	log.Info("Executing function %s: %s", name, args)
+	var fn *Function
+	if f, ok := ws.Functions[name]; ok {
+		fn = f
+	} else if f, ok := GlobalWorkspace.Functions[name]; ok {
+		fn = f
+	} else {
+		log.Warn("Function not found: %s", name)
+		return ""
+	}
+
+	argmap := make(map[string]string)
+	for i, arg := range fn.Args {
+		argmap[arg] = args[i]
+	}
+
+	for k, v := range argmap {
+		log.Info("argmap: %s => %s", k, v)
+		for t, m := range task.Metadata {
+			log.Info("meta: %s => %s", t, m)
+			v = strings.Replace(v, "$"+t, m, -1)
+		}
+		argmap[k] = v
+	}
+
+	c := fn.Command
+	for k, v := range argmap {
+		log.Info("ARG: %s => %s", k, v)
+		c = strings.Replace(c, k, v, -1)
+	}
+
+	tsk := NewTask(nil, "Function$"+name, fn.Executor, c, make(map[string]string), false, "", "", make(map[string]string))
+	ch := tsk.Start()
+	<-ch
+	return tsk.TaskRuns[0].StdoutBuf.String()
+}
+
+type Function struct {
+	Name     string
+	Args     []string
+	Command  string
+	Executor []string
+}
+
+func (ws *Workspace) ActiveTasks() int {
+	a := 0
+	for _, t := range ws.Tasks {
+		if t.ActiveTask != nil {
+			a++
+		}
+	}
+	return a
+}
+func (ws *Workspace) InactiveTasks() int {
+	return ws.TotalTasks() - ws.ActiveTasks()
+}
+func (ws *Workspace) TotalTasks() int {
+	return len(ws.Tasks)
+}
+func (ws *Workspace) PercentActive() int {
+	return int(float64(ws.ActiveTasks()) / float64(ws.TotalTasks()) * float64(100))
+}
+func (ws *Workspace) PercentInactive() int {
+	return 100 - ws.PercentActive()
+}
+
+func NewWorkspace(name string, environment map[string]string, columns map[string]map[string][]string) *Workspace {
 	ws := &Workspace{
 		Name:        name,
 		Environment: environment,
 		Tasks:       make(map[string]*Task),
+		Functions:   make(map[string]*Function),
+		Columns:     columns,
 	}
 	if _, ok := ws.Environment["WORKSPACE"]; !ok {
 		ws.Environment["WORKSPACE"] = name
 	}
-	Workspaces[name] = ws
 	return ws
 }
 
@@ -43,6 +128,7 @@ type Task struct {
 	Environment map[string]string
 	Stdout      string
 	Stderr      string
+	Metadata    map[string]string
 
 	ActiveTask *TaskRun
 	TaskRuns   []*TaskRun
@@ -71,6 +157,7 @@ type TaskRun struct {
 	StderrBuf   LogWriter
 	Environment map[string]string
 	Executor    []string
+	WaitStatus  syscall.WaitStatus
 }
 
 func (tr *TaskRun) String() string {
@@ -157,7 +244,7 @@ type Event struct {
 	Message string
 }
 
-func NewTask(workspace *Workspace, name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string) *Task {
+func NewTask(workspace *Workspace, name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string, metadata map[string]string) *Task {
 	environment = AddDefaultVars(environment)
 
 	if _, ok := environment["TASK"]; !ok {
@@ -176,24 +263,25 @@ func NewTask(workspace *Workspace, name string, executor []string, command strin
 		Executor:    executor,
 		Stdout:      stdout,
 		Stderr:      stderr,
+		Metadata:    metadata,
 	}
 
 	if task.Service {
 		task.Start()
 	}
 
-	workspace.Tasks[name] = task
-
 	return task
 }
 
-func (t *Task) Start() {
+func (t *Task) Start() chan int {
+	c1 := make(chan int, 1)
 	if t.ActiveTask == nil {
 		t.ActiveTask = t.NewTaskRun()
 		c := make(chan int)
 		t.ActiveTask.Start(c)
 		go func() {
 			<-c
+			c1 <- 1
 			t.ActiveTask = nil
 			if t.Service {
 				t.Start()
@@ -201,6 +289,7 @@ func (t *Task) Start() {
 			}
 		}()
 	}
+	return c1
 }
 
 func (t *Task) Stop() {
@@ -255,11 +344,13 @@ func (tr *TaskRun) Start(exitCh chan int) {
 	stdout, err := tr.Cmd.StdoutPipe()
 	if err != nil {
 		tr.Error = err
+		exitCh <- 1
 		return
 	}
 	stderr, err := tr.Cmd.StderrPipe()
 	if err != nil {
 		tr.Error = err
+		exitCh <- 1
 		return
 	}
 
@@ -302,6 +393,7 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		log.Error(err.Error())
 		tr.StdoutBuf.Close()
 		tr.StderrBuf.Close()
+		exitCh <- 1
 		return
 	}
 	go func() {
