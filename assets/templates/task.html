@@ -119,8 +119,8 @@ $(function() {
 	    	<td>{{ if not .Started.IsZero }}{{ .Started }}{{ end }}</td>
 	    	<td>{{ if not .Stopped.IsZero }}{{ .Stopped }}{{ end }}</td>
 	    	<td>
-	    		<a class="btn btn-xs btn-default" href="/task/{{ $TaskId }}/run/{{ .Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
-	    		<a class="btn btn-xs btn-default" href="/task/{{ $TaskId }}/run/{{ .Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
+	    		<a class="btn btn-xs btn-default" href="/workspace/{{ $WsId }}/task/{{ $TaskId }}/run/{{ .Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
+	    		<a class="btn btn-xs btn-default" href="/workspace/{{ $WsId }}/task/{{ $TaskId }}/run/{{ .Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
 	    	</td>
 	    </tr>
 	{{ end }}
