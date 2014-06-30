@@ -18,12 +18,13 @@ var GlobalWorkspace *Workspace
 var Workspaces = make(map[string]*Workspace)
 
 type Workspace struct {
-	Name        string
-	Environment map[string]string
-	Tasks       map[string]*Task
-	IsLocked    bool
-	Functions   map[string]*Function
-	Columns     map[string]map[string][]string
+	Name               string
+	Environment        map[string]string
+	Tasks              map[string]*Task
+	IsLocked           bool
+	Functions          map[string]*Function
+	Columns            map[string]map[string][]string
+	InheritEnvironment bool
 }
 
 func (ws *Workspace) GetColumn(task *Task, name string) string {
@@ -106,13 +107,14 @@ func (ws *Workspace) PercentInactive() int {
 	return 100 - ws.PercentActive()
 }
 
-func NewWorkspace(name string, environment map[string]string, columns map[string]map[string][]string) *Workspace {
+func NewWorkspace(name string, environment map[string]string, columns map[string]map[string][]string, inheritEnv bool) *Workspace {
 	ws := &Workspace{
-		Name:        name,
-		Environment: environment,
-		Tasks:       make(map[string]*Task),
-		Functions:   make(map[string]*Function),
-		Columns:     columns,
+		Name:               name,
+		Environment:        environment,
+		Tasks:              make(map[string]*Task),
+		Functions:          make(map[string]*Function),
+		Columns:            columns,
+		InheritEnvironment: inheritEnv,
 	}
 	if _, ok := ws.Environment["WORKSPACE"]; !ok {
 		ws.Environment["WORKSPACE"] = name

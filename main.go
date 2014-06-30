@@ -6,7 +6,9 @@ import (
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -25,7 +27,7 @@ func main() {
 
 	LoadConfig(global, workspaces)
 
-	GlobalWorkspace = NewWorkspace(GlobalConfigWorkspace.Name, GlobalConfigWorkspace.Environment, make(map[string]map[string][]string))
+	GlobalWorkspace = NewWorkspace(GlobalConfigWorkspace.Name, GlobalConfigWorkspace.Environment, make(map[string]map[string][]string), GlobalConfigWorkspace.InheritEnvironment)
 	for fn, args := range GlobalConfigWorkspace.Functions {
 		log.Info("=> Creating global function: %s", fn)
 		GlobalWorkspace.Functions[fn] = &Function{
@@ -33,6 +35,18 @@ func main() {
 			Args:     args.Args,
 			Command:  args.Command,
 			Executor: args.Executor,
+		}
+	}
+
+	if GlobalWorkspace.InheritEnvironment {
+		log.Info("=> Inheriting process environment into global workspace")
+		for _, k := range os.Environ() {
+			p := strings.SplitN(k, "=", 2)
+			log.Info("  %s = %s", p[0], p[1])
+			// TODO variable subst for current env vars
+			if _, ok := GlobalWorkspace.Environment[p[0]]; !ok {
+				GlobalWorkspace.Environment[p[0]] = p[1]
+			}
 		}
 	}
 
@@ -44,11 +58,23 @@ func main() {
 			log.Warn("Workspace %s already exists, merging tasks and environment")
 			workspace = wks
 		} else {
-			workspace = NewWorkspace(ws.Name, ws.Environment, ws.Columns)
+			workspace = NewWorkspace(ws.Name, ws.Environment, ws.Columns, ws.InheritEnvironment)
 			Workspaces[ws.Name] = workspace
 		}
 
 		workspace.IsLocked = ws.IsLocked
+
+		if workspace.InheritEnvironment && !GlobalWorkspace.InheritEnvironment {
+			log.Info("=> Inheriting process environment into workspace")
+			for _, k := range os.Environ() {
+				p := strings.SplitN(k, "=", 2)
+				log.Info("  %s = %s", p[0], p[1])
+				// TODO variable subst for current env vars
+				if _, ok := GlobalWorkspace.Environment[p[0]]; !ok {
+					GlobalWorkspace.Environment[p[0]] = p[1]
+				}
+			}
+		}
 
 		for fn, args := range ws.Functions {
 			log.Info("=> Creating workspace function: %s", fn)
@@ -68,6 +94,9 @@ func main() {
 			}
 
 			env := make(map[string]string)
+			for k, v := range GlobalWorkspace.Environment {
+				env[k] = v
+			}
 			for k, v := range ws.Environment {
 				env[k] = v
 			}

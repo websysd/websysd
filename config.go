@@ -12,12 +12,13 @@ var GlobalConfigWorkspace *ConfigWorkspace
 var ConfigWorkspaces = make(map[string]*ConfigWorkspace)
 
 type ConfigWorkspace struct {
-	Functions   map[string]*ConfigFunction
-	Environment map[string]string
-	Name        string
-	Tasks       []*ConfigTask
-	IsLocked    bool
-	Columns     map[string]map[string][]string
+	Functions          map[string]*ConfigFunction
+	Environment        map[string]string
+	Name               string
+	Tasks              []*ConfigTask
+	IsLocked           bool
+	Columns            map[string]map[string][]string
+	InheritEnvironment bool
 }
 
 type ConfigFunction struct {

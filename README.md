@@ -26,13 +26,39 @@ Too many console windows.
 
 ### Useful info
 
-- None of your environment is kept - explicitly set anything you need
-  - This includes `$PATH` - you might want to set it to `/bin:/usr/local/bin`
-- Logs are stored in memory by default (set task Stdout/Stderr to a filename)
 - Active tasks will be killed if `websysd` dies or is stopped
 - Use the `/bin/sh -c` executor on Linux
 - Use custom columns and functions to add UI metadata, e.g. display git branch name
   - see examples in [websysd.json](websysd.json) and [workspace.json](workspace.json)
+
+#### Environment
+
+Default websysd behaviour is to ignore all preset environment variables.
+
+This means you will need to set any variables you want explicitly (including `$PATH`,
+which you might want to set to `/bin:/usr/bin:/usr/local/bin`).
+
+You can change this behaviour by setting `InheritEnvironment` in either the global
+configuration or a workspace configuration file:
+
+    {
+    	"InheritEnvironment": true
+    }
+
+If `InheritEnvironment` is true in the global workspace, the setting is ignored by
+individual workspaces and the full environment will be inherited anyway.
+
+#### STDOUT/STDERR logs
+
+Output from tasks is stored in-memory by default.
+
+You can set `Stdout` and `Stderr` to a filename per-task to override this behaviour.
+
+Filenames can include environment variables, and `$TASK` and `$RUN` are set by websysd.
+
+    {
+    	"Stdout": "/tmp/$TASK-$RUN.out"
+    }
 
 ### Screenshots
 
