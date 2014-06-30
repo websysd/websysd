@@ -1,9 +1,9 @@
 websysd
 =======
 
-Like systemd or Upstart - not as good, but in a browser!
+Like [Marathon](https://github.com/mesosphere/marathon) or [Upstart](https://code.launchpad.net/upstart), for your desktop!
 
-And written in Go :)
+![Screenshot of websysd workspace list](/images/websysd_workspaces.png "websysd workspaces")
 
 ### Getting started
 
@@ -62,7 +62,6 @@ Filenames can include environment variables, and `$TASK` and `$RUN` are set by w
 
 ### Screenshots
 
-![Screenshot of websysd workspace list](/images/websysd_workspaces.png "websysd workspaces")
 ![Screenshot of websysd task list](/images/websysd_tasks.png "websysd task list")
 ![Screenshot of websysd task view](/images/websysd_task.png "websysd task view")
 ![Screenshot of websysd log view](/images/websysd_stdout.png "websysd log view")
