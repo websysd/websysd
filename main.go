@@ -104,7 +104,7 @@ func main() {
 				env[k] = v
 			}
 
-			task := NewTask(workspace, t.Name, t.Executor, t.Command, env, t.Service, t.Stdout, t.Stderr, t.Metadata)
+			task := NewTask(workspace, t.Name, t.Executor, t.Command, env, t.Service, t.Stdout, t.Stderr, t.Metadata, t.Pwd)
 			workspace.Tasks[t.Name] = task
 		}
 	}

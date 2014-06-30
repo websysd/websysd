@@ -38,6 +38,12 @@
 			"Metadata": {
 				"PATH": "/tmp"
 			}
+		},
+		{
+			"Name": "pwd",
+			"Command": "pwd",
+			"Executor": ["/bin/sh", "-c"],
+			"Pwd": "/tmp"
 		}
 	]
 }

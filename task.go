@@ -72,7 +72,7 @@ func (ws *Workspace) ExecFunction(task *Task, name string, args ...string) strin
 		c = strings.Replace(c, k, v, -1)
 	}
 
-	tsk := NewTask(nil, "Function$"+name, fn.Executor, c, make(map[string]string), false, "", "", make(map[string]string))
+	tsk := NewTask(nil, "Function$"+name, fn.Executor, c, make(map[string]string), false, "", "", make(map[string]string), "")
 	ch := tsk.Start()
 	<-ch
 	return tsk.TaskRuns[0].StdoutBuf.String()
@@ -131,6 +131,7 @@ type Task struct {
 	Stdout      string
 	Stderr      string
 	Metadata    map[string]string
+	Pwd         string
 
 	ActiveTask *TaskRun
 	TaskRuns   []*TaskRun
@@ -160,6 +161,7 @@ type TaskRun struct {
 	Environment map[string]string
 	Executor    []string
 	WaitStatus  syscall.WaitStatus
+	Pwd         string
 }
 
 func (tr *TaskRun) String() string {
@@ -246,7 +248,7 @@ type Event struct {
 	Message string
 }
 
-func NewTask(workspace *Workspace, name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string, metadata map[string]string) *Task {
+func NewTask(workspace *Workspace, name string, executor []string, command string, environment map[string]string, service bool, stdout string, stderr string, metadata map[string]string, pwd string) *Task {
 	environment = AddDefaultVars(environment)
 
 	if _, ok := environment["TASK"]; !ok {
@@ -266,6 +268,7 @@ func NewTask(workspace *Workspace, name string, executor []string, command strin
 		Stdout:      stdout,
 		Stderr:      stderr,
 		Metadata:    metadata,
+		Pwd:         pwd,
 	}
 
 	if task.Service {
@@ -330,6 +333,7 @@ func (t *Task) NewTaskRun() *TaskRun {
 		Environment: make(map[string]string),
 		Stdout:      stdout,
 		Stderr:      stderr,
+		Pwd:         t.Pwd,
 	}
 
 	for k, v := range t.Environment {
@@ -377,6 +381,11 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		}
 	} else {
 		tr.StderrBuf = NewInMemoryLogWriter()
+	}
+
+	if len(tr.Pwd) > 0 {
+		log.Info("Setting pwd: %s", tr.Pwd)
+		tr.Cmd.Dir = tr.Pwd
 	}
 
 	for k, v := range tr.Environment {

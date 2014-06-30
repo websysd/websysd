@@ -37,6 +37,7 @@ type ConfigTask struct {
 	Stdout      string
 	Stderr      string
 	Metadata    map[string]string
+	Pwd         string
 }
 
 func LoadConfigFile(file string) (*ConfigWorkspace, error) {
