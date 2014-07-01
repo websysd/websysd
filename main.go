@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"github.com/ian-kent/go-log/appenders"
+	"github.com/ian-kent/go-log/layout"
+	"github.com/ian-kent/go-log/levels"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
@@ -11,7 +15,38 @@ import (
 	"strings"
 )
 
+var maxlen = 262144000
+var retain = 52428800
+var applog bytes.Buffer
+
+type Appender struct {
+	a appenders.Appender
+}
+
+func (a *Appender) Write(level levels.LogLevel, message string, args ...interface{}) {
+	a.a.Write(level, message, args...)
+	applog.Write([]byte(a.Layout().Format(level, message, args...) + "\n"))
+	if applog.Len() > maxlen {
+		b := applog.Bytes()[retain:]
+		applog = *new(bytes.Buffer)
+		applog.Write(b)
+	}
+}
+func (a *Appender) SetLayout(layout layout.Layout) {
+	a.a.SetLayout(layout)
+}
+func (a *Appender) Layout() layout.Layout {
+	return a.a.Layout()
+}
+func NewAppender() *Appender {
+	return &Appender{
+		a: appenders.Console(),
+	}
+}
+
 func main() {
+	log.Logger().SetAppender(NewAppender())
+
 	global := "websysd.json"
 	flag.StringVar(&global, "global", global, "global environment configuration")
 
@@ -114,6 +149,7 @@ func main() {
 
 	// Create some routes
 	r.Get("/", list_workspaces)
+	r.Get("/log", show_log)
 	r.Get("/workspace/(?P<workspace>[^/]+)", list_tasks)
 
 	// Serve static content (but really use a CDN)
@@ -271,4 +307,12 @@ func list_tasks(session *http.Session) {
 	session.Stash["Workspace"] = Workspaces[ws]
 	session.Stash["Tasks"] = Workspaces[ws].Tasks
 	session.RenderWithLayout("tasks.html", "layout.html", "Content")
+}
+
+func show_log(session *http.Session) {
+	session.Stash["Title"] = "websysd log"
+	session.Stash["Page"] = "AppLog"
+	session.Stash["LogOutput"] = applog.String()
+
+	session.RenderWithLayout("applog.html", "layout.html", "Content")
 }

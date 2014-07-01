@@ -45,6 +45,9 @@
 			      	<li class="active"><a href=""><span class="glyphicon glyphicon-file"></span> {{ .Type }}</a></li>
 			      {{ end }}
 			    </ul>
+			     <ul class="nav navbar-nav navbar-right">
+		         	<li {{ if eq .Page "AppLog" }}class="active"{{ end }}><a href="/log">websysd logs</a></li>
+		         </ul>
 			  </div>
 			</div>
 		</nav>

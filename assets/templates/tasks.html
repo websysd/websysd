@@ -70,7 +70,7 @@ $(function() {
         {{ $ws := .Workspace }}
         {{ range .Tasks }}
             {{ $task := . }}
-            <tr class="{{ if .ActiveTask }}success{{ else }}danger{{ end }}">
+            <tr>
             	<td>
                     <a href="/workspace/{{ $ws.Name }}/task/{{ .Name }}" class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}">{{ .Name }}</a>
                 </td>

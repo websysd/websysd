@@ -65,7 +65,7 @@ $(function() {
             <table class="table">
                 {{ range .Tasks }}
                     {{ $task := . }}
-                    <tr class="{{ if .ActiveTask }}success{{ else }}danger{{ end }}">
+                    <tr>
                         <td><a class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}" href="/workspace/{{ $ws.Name }}/task/{{ .Name }}">{{ .Name }}</a></td>
                         {{ range $name, $el := $ws.Columns }}
                             <td>{{ $ws.GetColumn $task $name }}</td>
