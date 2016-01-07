@@ -322,6 +322,10 @@ func (t *Task) NewTaskRun() *TaskRun {
 		"TASK": strconv.Itoa(t.Id),
 		"RUN":  strconv.Itoa(run),
 	}
+	if len(t.Pwd) > 0 {
+		vars["PWD"] = t.Pwd
+	}
+	
 	stdout := ReplaceVars(t.Stdout, vars)
 	stderr := ReplaceVars(t.Stderr, vars)
 
