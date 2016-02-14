@@ -77,6 +77,10 @@ func main() {
 		log.Info("=> Inheriting process environment into global workspace")
 		for _, k := range os.Environ() {
 			p := strings.SplitN(k, "=", 2)
+			if strings.TrimSpace(p[0]) == "" {
+				log.Warn("Skipping empty environment key")
+				continue
+			}
 			log.Info("  %s = %s", p[0], p[1])
 			// TODO variable subst for current env vars
 			if _, ok := GlobalWorkspace.Environment[p[0]]; !ok {
@@ -103,10 +107,14 @@ func main() {
 			log.Info("=> Inheriting process environment into workspace")
 			for _, k := range os.Environ() {
 				p := strings.SplitN(k, "=", 2)
+				if strings.TrimSpace(p[0]) == "" {
+					log.Warn("Skipping empty environment key")
+					continue
+				}
 				log.Info("  %s = %s", p[0], p[1])
 				// TODO variable subst for current env vars
-				if _, ok := GlobalWorkspace.Environment[p[0]]; !ok {
-					GlobalWorkspace.Environment[p[0]] = p[1]
+				if _, ok := workspace.Environment[p[0]]; !ok {
+					workspace.Environment[p[0]] = p[1]
 				}
 			}
 		}
