@@ -157,6 +157,7 @@ func main() {
 
 	// Create some routes
 	r.Get("/", list_workspaces)
+	r.Get("/favicon.ico", r.Static("assets/favicon.ico"))
 	r.Get("/log", show_log)
 	r.Get("/workspace/(?P<workspace>[^/]+)", list_tasks)
 

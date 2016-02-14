@@ -63,12 +63,21 @@ $(function() {
           </div>
           <div class="panel-body">
             <table class="table">
+                <thead>
+                    <tr>
+                    <th>Task</th>
+                    {{ range $name, $el := $ws.Columns }}<th>{{$name}}</th>{{end}}
+                    <th>Service</th>
+                    <th>Run/stop</th>
+                    </tr>
+                </thead>
+                <tbody>
                 {{ range .Tasks }}
                     {{ $task := . }}
                     <tr>
                         <td><a class="{{ if .ActiveTask }}text-success{{ else }}text-danger{{ end }}" href="/workspace/{{ $ws.Name }}/task/{{ .Name }}">{{ .Name }}</a></td>
                         {{ range $name, $el := $ws.Columns }}
-                            <td>{{ $ws.GetColumn $task $name }}</td>
+                            <td><pre>{{ $ws.GetColumn $task $name }}</pre></td>
                         {{ end }}
                         <td style="width: 40px">
                             {{ if not .Service }}
@@ -86,6 +95,7 @@ $(function() {
                         </td>
                     </tr>
                 {{ end }}
+                </tbody>
             </table>
           </div>
         </div>
