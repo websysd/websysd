@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/ian-kent/go-log/log"
 	"io"
 	"io/ioutil"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/ian-kent/go-log/log"
 )
 
 var GlobalWorkspace *Workspace
@@ -289,6 +290,7 @@ func (t *Task) Start() chan int {
 			c1 <- 1
 			t.ActiveTask = nil
 			if t.Service {
+				time.Sleep(time.Second * 1)
 				t.Start()
 				return
 			}
@@ -325,7 +327,7 @@ func (t *Task) NewTaskRun() *TaskRun {
 	if len(t.Pwd) > 0 {
 		vars["PWD"] = t.Pwd
 	}
-	
+
 	stdout := ReplaceVars(t.Stdout, vars)
 	stderr := ReplaceVars(t.Stderr, vars)
 
