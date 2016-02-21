@@ -70,7 +70,7 @@ $(function() {
 	    		{{ if eq .Task.Status "Stopped" }}
 	    			<button formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/start" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-play"></span> Start</button>
 	    		{{ else }}
-	                <button formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+	                <button formaction="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/stop" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-stop"></span> {{ if .Task.Service }}Restart{{ else }}Stop{{ end }}</button>
 	    		{{ end }}
 			</td>
 		</tr>
