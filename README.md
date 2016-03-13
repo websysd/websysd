@@ -68,6 +68,6 @@ Filenames can include environment variables, and `$TASK` and `$RUN` are set by w
 
 ### Licence
 
-Copyright ©‎ 2014, Ian Kent (http://www.iankent.eu).
+Copyright ©‎ 2014 - 2016, Ian Kent (http://www.iankent.eu).
 
 Released under MIT license, see [LICENSE](LICENSE.md) for details.
