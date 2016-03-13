@@ -73,7 +73,16 @@ func (ws *Workspace) ExecFunction(task *Task, name string, args ...string) strin
 		c = strings.Replace(c, k, v, -1)
 	}
 
-	tsk := NewTask(nil, "Function$"+name, fn.Executor, c, make(map[string]string), false, "", "", make(map[string]string), "")
+	var funcEnvironment map[string]string
+	if ws.InheritEnvironment {
+		funcEnvironment = ws.Environment
+	} else if GlobalWorkspace.InheritEnvironment {
+		funcEnvironment = GlobalWorkspace.Environment
+	} else {
+		funcEnvironment = make(map[string]string)
+	}
+
+	tsk := NewTask(nil, "Function$"+name, fn.Executor, c, funcEnvironment, false, "", "", make(map[string]string), "")
 	ch := tsk.Start()
 	<-ch
 	return tsk.TaskRuns[0].StdoutBuf.String()
@@ -422,11 +431,16 @@ func (tr *TaskRun) Start(exitCh chan int) {
 		tr.StdoutBuf.Close()
 		tr.StderrBuf.Close()
 
-		log.Trace("STDOUT: %s", tr.StdoutBuf.String())
-		log.Trace("STDERR: %s", tr.StderrBuf.String())
-
 		ps := tr.Cmd.ProcessState
 		sy := ps.Sys().(syscall.WaitStatus)
+
+		if sy.ExitStatus() == 0 {
+			log.Trace("STDOUT: %s", tr.StdoutBuf.String())
+			log.Trace("STDERR: %s", tr.StderrBuf.String())
+		} else {
+			log.Info("STDOUT: %s", tr.StdoutBuf.String())
+			log.Info("STDERR: %s", tr.StderrBuf.String())
+		}
 
 		ev := &Event{time.Now(), fmt.Sprintf("Process %d exited with status %d", ps.Pid(), sy.ExitStatus())}
 		log.Info(ev.Message)
