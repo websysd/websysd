@@ -3,16 +3,17 @@ package main
 import (
 	"bytes"
 	"flag"
+	"net/url"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/ian-kent/go-log/appenders"
 	"github.com/ian-kent/go-log/layout"
 	"github.com/ian-kent/go-log/levels"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
-	"net/url"
-	"os"
-	"strconv"
-	"strings"
 )
 
 var maxlen = 262144000

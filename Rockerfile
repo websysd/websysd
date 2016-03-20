@@ -1,0 +1,17 @@
+# build image
+FROM golang:latest
+RUN git clone https://github.com/ian-kent/websysd $GOPATH/src/github.com/ian-kent/websysd
+RUN go get -v github.com/ian-kent/websysd && \
+    cd /go/src && \
+    CGO_ENABLED=0 go build -a -installsuffix cgo -v -o /go/bin/websysd.o github.com/ian-kent/websysd/main.go \
+    github.com/ian-kent/websysd/bindata.go github.com/ian-kent/websysd/config.go \
+    github.com/ian-kent/websysd/task.go github.com/ian-kent/websysd/vars.go github.com/ian-kent/websysd/AppendSliceValue.go
+EXPORT /go/bin/ /target
+
+# run image
+FROM alpine:latest
+IMPORT /target/ /tmp
+RUN cp /tmp/websysd.o /websysd
+EXPOSE 1025 8025
+CMD ["/websysd"]
+TAG iankent/websysd:{{ or .VERSION "latest" }}

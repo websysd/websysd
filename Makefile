@@ -11,9 +11,7 @@ release: release-deps
 	gox ./...
 
 deps:
-	go get github.com/jteeuwen/go-bindata
-	#go get github.com/ian-kent/go-log/...
-	go get github.com/ian-kent/gotcha/...
+	go get github.com/ian-kent/websysd
 
 test-deps:
 	go get github.com/stretchr/testify
@@ -21,4 +19,13 @@ test-deps:
 release-deps:
 	go get github.com/mitchellh/gox
 
-.PNONY: all test deps
+rocker: rocker-deps
+	rocker build
+
+rocker-deps:
+	go get github.com/grammarly/rocker
+
+dockerhub: rocker
+	docker push iankent/websysd
+
+.PNONY: all test release deps test-deps release-deps rocker rocker-deps dockerhub
