@@ -1,16 +1,21 @@
-package main
+package app
 
 import (
 	"encoding/json"
-	"github.com/ian-kent/go-log/log"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/ian-kent/go-log/log"
 )
 
+// GlobalConfigWorkspace is the global workspace config
 var GlobalConfigWorkspace *ConfigWorkspace
+
+// ConfigWorkspaces is the user workspace configs
 var ConfigWorkspaces = make(map[string]*ConfigWorkspace)
 
+// ConfigWorkspace is the config for a workspace
 type ConfigWorkspace struct {
 	Functions          map[string]*ConfigFunction
 	Environment        map[string]string
@@ -21,14 +26,16 @@ type ConfigWorkspace struct {
 	InheritEnvironment bool
 }
 
+// ConfigFunction is the config for a function
 type ConfigFunction struct {
 	Args     []string
 	Command  string
 	Executor []string
 }
 
+// ConfigTask is the config for a task
 type ConfigTask struct {
-	Id          int
+	ID          int
 	Name        string
 	Command     string
 	Environment map[string]string
@@ -40,6 +47,7 @@ type ConfigTask struct {
 	Pwd         string
 }
 
+// LoadConfigFile loads a config file and returns a ConfigWorkspace
 func LoadConfigFile(file string) (*ConfigWorkspace, error) {
 	var b []byte
 	var err error
@@ -47,7 +55,7 @@ func LoadConfigFile(file string) (*ConfigWorkspace, error) {
 
 	if strings.HasPrefix(file, "http://") ||
 		strings.HasPrefix(file, "https://") {
-		b, err = ReadHttp(file)
+		b, err = readHTTP(file)
 		locked = true
 	} else {
 		b, err = ioutil.ReadFile(file)
@@ -68,7 +76,7 @@ func LoadConfigFile(file string) (*ConfigWorkspace, error) {
 	return cfg, nil
 }
 
-func ReadHttp(url string) ([]byte, error) {
+func readHTTP(url string) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -83,6 +91,7 @@ func ReadHttp(url string) ([]byte, error) {
 	return b, nil
 }
 
+// LoadConfig loads a set of config files
 func LoadConfig(global string, workspaces []string) {
 	// Load global environment
 	log.Info("Loading global environment file: %s", global)

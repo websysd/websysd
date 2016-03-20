@@ -1,10 +1,11 @@
-package main
+package app
 
 import (
 	"os/user"
 	"strings"
 )
 
+// AddDefaultVars adds the USER, UID, GID and HOME environment variables
 func AddDefaultVars(vars map[string]string) map[string]string {
 	u, err := user.Current()
 	if err == nil {
@@ -24,6 +25,7 @@ func AddDefaultVars(vars map[string]string) map[string]string {
 	return vars
 }
 
+// ReplaceVars replaces environment variables
 func ReplaceVars(text string, vars map[string]string) string {
 	vars = AddDefaultVars(vars)
 

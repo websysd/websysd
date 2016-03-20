@@ -1,4 +1,4 @@
-package main
+package app
 
 import "strings"
 
@@ -12,6 +12,7 @@ func (s *AppendSliceValue) String() string {
 	return strings.Join(*s, ",")
 }
 
+// Set implements flag.Value.Set
 func (s *AppendSliceValue) Set(value string) error {
 	if *s == nil {
 		*s = make([]string, 0, 1)
