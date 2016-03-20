@@ -12,5 +12,5 @@ FROM alpine:latest
 IMPORT /target/ /tmp
 RUN cp /tmp/websysd.o /websysd
 EXPOSE 7050
-CMD ["/websysd"]
+ENTRYPOINT ["/websysd","-global=/websysd.json"]
 TAG iankent/websysd:{{ or .VERSION "latest" }}

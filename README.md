@@ -7,6 +7,12 @@ Like [Marathon](https://github.com/mesosphere/marathon) or [Upstart](https://cod
 
 ### Getting started
 
+Download a [binary release](https://github.com/ian-kent/websysd/releases), or run it with Docker:
+
+```
+docker run -v `pwd`/workspace.json:/workspace.json -v `pwd`/websysd.json:/websysd.json iankent/websysd -workspace=/workspace.json
+```
+
 - Optionally set a global environment - see [websysd.json](websysd.json) for an example
 - Create a JSON workspace file - see [workspace.json](workspace.json) for an example
 - Start `websysd`
