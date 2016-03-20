@@ -1,6 +1,5 @@
 # build image
 FROM golang:latest
-RUN git clone https://github.com/ian-kent/websysd $GOPATH/src/github.com/ian-kent/websysd
 RUN go get -v github.com/ian-kent/websysd && \
     cd /go/src && \
     CGO_ENABLED=0 go build -a -installsuffix cgo -v -o /go/bin/websysd.o github.com/ian-kent/websysd/main.go \
