@@ -12,6 +12,6 @@ EXPORT /go/bin/ /target
 FROM alpine:latest
 IMPORT /target/ /tmp
 RUN cp /tmp/websysd.o /websysd
-EXPOSE 1025 8025
+EXPOSE 7050
 CMD ["/websysd"]
 TAG iankent/websysd:{{ or .VERSION "latest" }}
