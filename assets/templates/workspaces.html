@@ -13,7 +13,7 @@ td pre {
 .task-output {
     margin-top: 5px;
 }
-.table tr:hover {
+.table tbody tr:hover {
     cursor: pointer;
 }
 h2 {
@@ -40,7 +40,7 @@ h2 {
 <script>
 $(function() {
     $("[data-toggle='tooltip']").tooltip();
-    $('.table tr').click(function(e) {
+    $('.table tbody tr').click(function(e) {
         window.location.href = $(e.target).parents('tr').find("td a").attr('href')
     });
 });
