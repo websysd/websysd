@@ -53,14 +53,14 @@ $(function() {
 		<tr>
 			<th>Stdout</th>
 			<td>
-				{{ if .TaskRun.Stdout }}<pre>{{ .TaskRun.Stdout }}</pre>{{ else }}In-memory{{ end }} - {{ .TaskRun.StdoutBuf.Len }} bytes
+				{{ if .TaskRun.Stdout }}<pre>{{ .TaskRun.Stdout }}</pre>{{ else }}In-memory - {{ end }}{{ .TaskRun.StdoutBuf.Len }} bytes
 				<a class="btn btn-xs btn-default" href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/run/{{ .TaskRun.Id }}/stdout"><span class="glyphicon glyphicon-file"></span> stdout</a>
 			</td>
 		</tr>
 		<tr>
 			<th>Stderr</th>
 			<td>
-				{{ if .TaskRun.Stderr }}<pre>{{ .TaskRun.Stderr }}</pre>{{ else }}In-memory{{ end }} - {{ .TaskRun.StderrBuf.Len }} bytes
+				{{ if .TaskRun.Stderr }}<pre>{{ .TaskRun.Stderr }}</pre>{{ else }}In-memory - {{ end }}{{ .TaskRun.StderrBuf.Len }} bytes
 	    		<a class="btn btn-xs btn-default" href="/workspace/{{ .Workspace.Name }}/task/{{ .Task.Name }}/run/{{ .TaskRun.Id }}/stderr"><span class="glyphicon glyphicon-file"></span> stderr</a>
 	    	</td>
 		</tr>
