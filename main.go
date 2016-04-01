@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"net/url"
 	"os"
@@ -14,11 +13,9 @@ import (
 	websysd "github.com/ian-kent/websysd/app"
 )
 
-var maxlen = 262144000
-var retain = 52428800
-var applog bytes.Buffer
-
 func main() {
+	log.Logger().SetAppender(websysd.NewAppender())
+
 	global := "websysd.json"
 	flag.StringVar(&global, "global", global, "global environment configuration")
 
@@ -293,7 +290,7 @@ func listTasks(session *http.Session) {
 func showLog(session *http.Session) {
 	session.Stash["Title"] = "websysd log"
 	session.Stash["Page"] = "AppLog"
-	session.Stash["LogOutput"] = applog.String()
+	session.Stash["LogOutput"] = websysd.Log.String()
 
 	session.RenderWithLayout("applog.html", "layout.html", "Content")
 }
