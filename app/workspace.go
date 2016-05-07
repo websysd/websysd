@@ -118,6 +118,9 @@ func (ws *Workspace) PercentInactive() int {
 
 // NewWorkspace returns a new workspace
 func NewWorkspace(name string, environment map[string]string, columns map[string]map[string][]string, inheritEnv bool) *Workspace {
+	if environment == nil {
+		environment = make(map[string]string)
+	}
 	ws := &Workspace{
 		Name:               name,
 		Environment:        environment,
