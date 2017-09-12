@@ -10,7 +10,7 @@ import (
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
-	websysd "github.com/ian-kent/websysd/app"
+	websysd "github.com/websysd/websysd/app"
 )
 
 func main() {
