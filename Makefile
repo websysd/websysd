@@ -11,7 +11,7 @@ release: release-deps
 	gox ./...
 
 deps:
-	go get github.com/ian-kent/websysd
+	go get github.com/websysd/websysd
 
 test-deps:
 	go get github.com/stretchr/testify

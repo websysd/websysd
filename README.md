@@ -7,7 +7,7 @@ Like [Marathon](https://github.com/mesosphere/marathon) or [Upstart](https://cod
 
 ### Getting started
 
-Download a [binary release](https://github.com/ian-kent/websysd/releases), or run it with Docker:
+Download a [binary release](https://github.com/websysd/websysd/releases), or run it with Docker:
 
 ```
 docker run -v `pwd`/workspace.json:/workspace.json -v `pwd`/websysd.json:/websysd.json iankent/websysd -workspace=/workspace.json
