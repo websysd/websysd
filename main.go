@@ -10,7 +10,7 @@ import (
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
-	websysd "github.com/ian-kent/websysd/app"
+	websysd "github.com/websysd/websysd/app"
 )
 
 func main() {
@@ -167,7 +167,11 @@ func redir(session *http.Session) {
 		redir = k
 	}
 
-	session.Redirect(&url.URL{Path: redir})
+	u, err := url.Parse(redir)
+	if err != nil {
+		u = &url.URL{Path: "/"}
+	}
+	session.Redirect(u)
 }
 
 func startTask(session *http.Session) {

@@ -1,10 +1,10 @@
 # build image
 FROM golang:latest
-RUN go get -v github.com/ian-kent/websysd && \
+RUN go get -v github.com/websysd/websysd && \
     cd /go/src && \
-    CGO_ENABLED=0 go build -a -installsuffix cgo -v -o /go/bin/websysd.o github.com/ian-kent/websysd/main.go \
-    github.com/ian-kent/websysd/bindata.go github.com/ian-kent/websysd/config.go \
-    github.com/ian-kent/websysd/task.go github.com/ian-kent/websysd/vars.go github.com/ian-kent/websysd/AppendSliceValue.go
+    CGO_ENABLED=0 go build -a -installsuffix cgo -v -o /go/bin/websysd.o github.com/websysd/websysd/main.go \
+    github.com/websysd/websysd/bindata.go github.com/websysd/websysd/config.go \
+    github.com/websysd/websysd/task.go github.com/websysd/websysd/vars.go github.com/websysd/websysd/AppendSliceValue.go
 EXPORT /go/bin/ /target
 
 # run image
